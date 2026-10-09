@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
+from .forms import TodoForm
 from .models import Todo
 
 
@@ -18,6 +19,10 @@ class TodoTests(TestCase):
         self.client.post(reverse("todo_add"), {"title": "   "})
         self.assertEqual(Todo.objects.count(), 0)
 
+    def test_too_long_title_is_not_added(self):
+        self.client.post(reverse("todo_add"), {"title": "x" * 201})
+        self.assertEqual(Todo.objects.count(), 0)
+
     def test_toggle_marks_done_and_back(self):
         todo = Todo.objects.create(title="Read chapter 3")
         self.client.post(reverse("todo_toggle", args=[todo.pk]))
@@ -31,3 +36,30 @@ class TodoTests(TestCase):
         todo = Todo.objects.create(title="Call home")
         self.client.post(reverse("todo_delete", args=[todo.pk]))
         self.assertEqual(Todo.objects.count(), 0)
+
+
+class TodoFormTests(TestCase):
+    """Unit tests: the form alone, no view, no page."""
+
+    def test_valid_title_is_accepted(self):
+        form = TodoForm({"title": "Buy milk"})
+        self.assertTrue(form.is_valid())
+
+    def test_blank_title_is_rejected(self):
+        form = TodoForm({"title": ""})
+        self.assertFalse(form.is_valid())
+        self.assertIn("title", form.errors)
+
+    def test_whitespace_only_title_is_rejected(self):
+        form = TodoForm({"title": "   "})
+        self.assertFalse(form.is_valid())
+
+    def test_title_over_200_characters_is_rejected(self):
+        form = TodoForm({"title": "x" * 201})
+        self.assertFalse(form.is_valid())
+
+    def test_save_strips_surrounding_spaces(self):
+        form = TodoForm({"title": "  Call home  "})
+        self.assertTrue(form.is_valid())
+        todo = form.save()
+        self.assertEqual(todo.title, "Call home")

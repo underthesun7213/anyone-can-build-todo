@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from .forms import TodoForm
 from .models import Todo
 
 
@@ -11,9 +12,9 @@ def todo_list(request):
 
 @require_POST
 def todo_add(request):
-    title = request.POST.get("title", "").strip()
-    if title:
-        Todo.objects.create(title=title)
+    form = TodoForm(request.POST)
+    if form.is_valid():
+        form.save()
     return redirect("todo_list")
 
 

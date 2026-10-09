@@ -3,7 +3,7 @@
 {% block content %}
   <h1>To-do list</h1>
 
-  <form class="add" method="post" action="{% url 'todo_add' %}">
+  <form class="inline" method="post" action="{% url 'todo_add' %}">
     {% csrf_token %}
     <input name="title" aria-label="New to-do" placeholder="What needs doing?" maxlength="200" required autofocus>
     <button type="submit">Add</button>

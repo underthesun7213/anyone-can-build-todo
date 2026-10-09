@@ -5,9 +5,9 @@
 {% block content %}
   <h1>Edit to-do</h1>
 
-  <form class="add" method="post" action="{% url 'todo_edit' todo.pk %}">
+  <form class="inline" method="post" action="{% url 'todo_edit' todo.pk %}">
     {% csrf_token %}
-    <input name="title" aria-label="Title" value="{{ form.title.value }}" maxlength="200" required autofocus>
+    {{ form.title }}
     <button type="submit">Save</button>
     <a class="button" href="{% url 'todo_list' %}">Cancel</a>
   </form>

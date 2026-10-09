@@ -18,6 +18,20 @@ def todo_add(request):
     return redirect("todo_list")
 
 
+def todo_edit(request, pk):
+    """GET shows the edit form; POST saves it and goes back to the list.
+    An invalid POST shows the form again, with the error, and changes nothing."""
+    todo = get_object_or_404(Todo, pk=pk)
+    if request.method == "POST":
+        form = TodoForm(request.POST, instance=todo)
+        if form.is_valid():
+            form.save()
+            return redirect("todo_list")
+    else:
+        form = TodoForm(instance=todo)
+    return render(request, "todos/todo_edit.html", {"form": form, "todo": todo})
+
+
 @require_POST
 def todo_toggle(request, pk):
     todo = get_object_or_404(Todo, pk=pk)

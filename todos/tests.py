@@ -62,8 +62,21 @@ class TodoTests(TestCase):
         todo = Todo.objects.create(title="Call home")
         response = self.client.post(reverse("todo_edit", args=[todo.pk]), {"title": ""})
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "This field is required")
         todo.refresh_from_db()
         self.assertEqual(todo.title, "Call home")
+
+    def test_edit_without_title_key_does_not_show_none(self):
+        todo = Todo.objects.create(title="Call home")
+        response = self.client.post(reverse("todo_edit", args=[todo.pk]), {})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'value="None"')
+
+    def test_edit_rejects_other_methods(self):
+        todo = Todo.objects.create(title="Call home")
+        url = reverse("todo_edit", args=[todo.pk])
+        self.assertEqual(self.client.put(url).status_code, 405)
+        self.assertEqual(self.client.delete(url).status_code, 405)
 
     def test_edit_missing_todo_is_404(self):
         response = self.client.get(reverse("todo_edit", args=[999]))

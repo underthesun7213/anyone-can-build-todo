@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from .forms import TodoForm
 from .models import Todo
@@ -18,6 +18,7 @@ def todo_add(request):
     return redirect("todo_list")
 
 
+@require_http_methods(["GET", "POST"])
 def todo_edit(request, pk):
     """GET shows the edit form; POST saves it and goes back to the list.
     An invalid POST shows the form again, with the error, and changes nothing."""

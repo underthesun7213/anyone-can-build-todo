@@ -255,7 +255,18 @@ class CountTests(TestCase):
         )
         self.assertContains(response, '<p class="count">2 left</p>', html=True)
 
+        # A blank title adds nothing, so the count does not change.
+        response = self.client.post(reverse("todo_add"), {"title": "  "}, follow=True)
+        self.assertContains(response, '<p class="count">2 left</p>', html=True)
+
         milk = Todo.objects.get(title="Buy milk")
+        response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
+        self.assertContains(response, '<p class="count">1 left</p>', html=True)
+
+        # Undo: toggle the same to-do back.
+        response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
+        self.assertContains(response, '<p class="count">2 left</p>', html=True)
+
         response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
         self.assertContains(response, '<p class="count">1 left</p>', html=True)
 

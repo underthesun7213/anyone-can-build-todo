@@ -214,3 +214,61 @@ class TodoFormTests(TestCase):
         self.assertEqual(saved.pk, todo.pk)
         self.assertEqual(Todo.objects.count(), 1)
         self.assertEqual(Todo.objects.get().title, "New")
+
+
+class CountTests(TestCase):
+    """The "N left" / "All done" line above the list."""
+
+    def get_list(self):
+        return self.client.get(reverse("todo_list"))
+
+    def test_count_shows_how_many_are_left(self):
+        Todo.objects.create(title="One")
+        Todo.objects.create(title="Two")
+        Todo.objects.create(title="Three", done=True)
+        self.assertContains(self.get_list(), '<p class="count">2 left</p>', html=True)
+
+    def test_count_says_1_left_without_items(self):
+        Todo.objects.create(title="One")
+        response = self.get_list()
+        self.assertContains(response, '<p class="count">1 left</p>', html=True)
+        self.assertNotContains(response, "item left")
+        self.assertNotContains(response, "items left")
+
+    def test_count_says_all_done_when_nothing_is_left(self):
+        Todo.objects.create(title="One", done=True)
+        Todo.objects.create(title="Two", done=True)
+        response = self.get_list()
+        self.assertContains(response, '<p class="count">All done</p>', html=True)
+        self.assertNotContains(response, "0 left")
+
+    def test_count_is_above_the_list(self):
+        Todo.objects.create(title="One")
+        page = self.get_list().content.decode()
+        self.assertIn('class="count"', page)
+        self.assertLess(page.index('class="count"'), page.index("<ul"))
+
+    def test_count_follows_add_toggle_and_delete(self):
+        Todo.objects.create(title="Call mum")
+        response = self.client.post(
+            reverse("todo_add"), {"title": "Buy milk"}, follow=True
+        )
+        self.assertContains(response, '<p class="count">2 left</p>', html=True)
+
+        milk = Todo.objects.get(title="Buy milk")
+        response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
+        self.assertContains(response, '<p class="count">1 left</p>', html=True)
+
+        mum = Todo.objects.get(title="Call mum")
+        response = self.client.post(reverse("todo_delete", args=[mum.pk]), follow=True)
+        self.assertContains(response, '<p class="count">All done</p>', html=True)
+
+        response = self.client.post(reverse("todo_delete", args=[milk.pk]), follow=True)
+        self.assertNotContains(response, 'class="count"')
+
+    def test_no_count_when_the_list_is_empty(self):
+        response = self.get_list()
+        self.assertContains(response, "Nothing to do yet")
+        self.assertNotContains(response, 'class="count"')
+        self.assertNotContains(response, "All done")
+        self.assertNotContains(response, " left<")

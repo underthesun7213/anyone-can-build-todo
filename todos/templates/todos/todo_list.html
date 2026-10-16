@@ -9,6 +9,10 @@
     <button type="submit">Add</button>
   </form>
 
+  {% if todos %}
+    <p class="count">{% if remaining_count %}{{ remaining_count }} left{% else %}All done{% endif %}</p>
+  {% endif %}
+
   <ul>
     {% for todo in todos %}
       <li class="{% if todo.done %}done{% endif %}">

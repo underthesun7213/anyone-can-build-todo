@@ -7,7 +7,14 @@ from .models import Todo
 
 def todo_list(request):
     todos = Todo.objects.all()
-    return render(request, "todos/todo_list.html", {"todos": todos})
+    return render(
+        request,
+        "todos/todo_list.html",
+        {
+            "todos": todos,
+            "remaining_count": todos.filter(done=False).count(),
+        },
+    )
 
 
 @require_POST

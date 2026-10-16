@@ -7,9 +7,14 @@ from .models import Todo
 
 def todo_list(request):
     todos = Todo.objects.all()
-    has_done = todos.filter(done=True).exists()
     return render(
-        request, "todos/todo_list.html", {"todos": todos, "has_done": has_done}
+        request,
+        "todos/todo_list.html",
+        {
+            "todos": todos,
+            "remaining_count": todos.filter(done=False).count(),
+            "has_done": todos.filter(done=True).exists(),
+        },
     )
 
 

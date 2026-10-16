@@ -59,7 +59,7 @@ Open <http://127.0.0.1:8000/>. Press `Ctrl+C` in the terminal to stop the server
 uv run python manage.py test
 ```
 
-You should see `Ran 41 tests` and `OK`.
+You should see `Ran 47 tests` and `OK`.
 
 On a Mac, `make` does the same in fewer words: `make setup` is steps 3 to 5, `make run` is step 6,
 `make test` is step 7. `make help` lists the rest.

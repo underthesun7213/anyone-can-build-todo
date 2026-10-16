@@ -89,8 +89,8 @@ Just **before** `<ul>` (after the add form), add:
 
 ### 4. `PLAN.md` — F7
 
-Change `### F7. 남은 개수 표시 — 계획` to `— 구현됨`, like F1 to F5. Add the line
-"할 일이 하나도 없으면 개수 줄을 보이지 않습니다."
+Change `### F7. Show how many are left — Planned` to `— Built`, like F1 to F5. Add the line
+"If there are no to-dos at all, the count line is not shown."
 
 ### 5. `README.md` — the test count
 
@@ -162,7 +162,7 @@ small and easy to fix by hand.
 
 | # | Objection | Decision | Why |
 |---|---|---|---|
-| 1 | The spec says "0 left → All done", but the plan hides the count on an empty list and does not update the spec. | Accept | Keep the decision (no count line on an empty list), and change the F7 lines in `PLAN.md` to say so: "할 일이 하나도 없으면 개수 줄을 보이지 않습니다." |
+| 1 | The spec says "0 left → All done", but the plan hides the count on an empty list and does not update the spec. | Accept | Keep the decision (no count line on an empty list), and change the F7 lines in `PLAN.md` to say so: "If there are no to-dos at all, the count line is not shown." |
 | 2 | `README.md` is missing; it says `Ran 34 tests`. | Accept | Update it to the new count (`Ran 40 tests`, see #4). |
 | 3 | Three separate `Todo.objects` queries will each need the owner filter when F11 comes. | Accept | Build one base queryset `todos = Todo.objects.all()` and derive the count from it (`todos.filter(done=False).count()`). |
 | 4 | `test_the_database_does_the_counting` tests how, not what, and is weak. | Accept | Drop it. Done when becomes `Ran 40 tests` and `OK` (34 + 6). |

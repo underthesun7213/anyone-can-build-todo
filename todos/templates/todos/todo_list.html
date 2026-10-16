@@ -31,4 +31,11 @@
       <li>Nothing to do yet. Add something above.</li>
     {% endfor %}
   </ul>
+
+  {% if has_done %}
+    <form method="post" action="{% url 'todo_clear_done' %}">
+      {% csrf_token %}
+      <button type="submit">Clear done</button>
+    </form>
+  {% endif %}
 {% endblock %}

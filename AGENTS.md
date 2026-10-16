@@ -17,8 +17,8 @@ in a SQLite database, the file `db.sqlite3`, which is not in git.
 | `config/settings.py` | Settings for the whole project. The secret key, debug and allowed hosts come from environment variables on a live server, with defaults for a laptop. |
 | `config/urls.py` | Sends `/admin/` to Django's admin, and everything else to `todos/urls.py`. |
 | `todos/models.py` | The `Todo` table: `title`, `done`, `created_at`. |
-| `todos/urls.py` | The five addresses: the list, add, edit, toggle, delete. |
-| `todos/views.py` | One function per address. Add, toggle and delete accept `POST` only, then send the browser back to the list. Edit accepts `GET` and `POST` only. The list also gets `remaining_count`. |
+| `todos/urls.py` | The six addresses: the list, add, edit, toggle, delete, clear-done. |
+| `todos/views.py` | One function per address. Add, toggle, delete and clear-done accept `POST` only, then send the browser back to the list. Edit accepts `GET` and `POST` only. The list also gets `remaining_count`. |
 | `todos/forms.py` | `TodoForm`: checks the title, for both add and edit. |
 | `todos/templates/todos/base.html` | The shared page frame and styles. The other pages extend it. |
 | `todos/templates/todos/todo_list.html` | The main page: the add form, how many to-dos are left (above the list), and the list. |

@@ -13,6 +13,7 @@ def todo_list(request):
         {
             "todos": todos,
             "remaining_count": todos.filter(done=False).count(),
+            "has_done": todos.filter(done=True).exists(),
         },
     )
 
@@ -52,4 +53,11 @@ def todo_toggle(request, pk):
 def todo_delete(request, pk):
     todo = get_object_or_404(Todo, pk=pk)
     todo.delete()
+    return redirect("todo_list")
+
+
+@require_POST
+def todo_clear_done(request):
+    """Delete every done to-do in one step. If none is done, nothing changes."""
+    Todo.objects.filter(done=True).delete()
     return redirect("todo_list")

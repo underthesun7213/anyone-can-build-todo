@@ -9,6 +9,14 @@
     <button type="submit">Add</button>
   </form>
 
+  {% if messages %}
+    <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   {% if todos %}
     <p class="count">{% if remaining_count %}{{ remaining_count }} left{% else %}All done{% endif %}</p>
   {% endif %}

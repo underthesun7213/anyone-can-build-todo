@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods, require_POST
 
@@ -23,6 +24,10 @@ def todo_add(request):
     form = TodoForm(request.POST)
     if form.is_valid():
         form.save()
+        messages.success(request, "Added")
+    else:
+        for error in form.errors["title"]:
+            messages.error(request, error)
     return redirect("todo_list")
 
 
@@ -35,6 +40,7 @@ def todo_edit(request, pk):
         form = TodoForm(request.POST, instance=todo)
         if form.is_valid():
             form.save()
+            messages.success(request, "Saved")
             return redirect("todo_list")
     else:
         form = TodoForm(instance=todo)
@@ -46,6 +52,7 @@ def todo_toggle(request, pk):
     todo = get_object_or_404(Todo, pk=pk)
     todo.done = not todo.done
     todo.save()
+    messages.success(request, "Marked done" if todo.done else "Marked not done")
     return redirect("todo_list")
 
 
@@ -53,6 +60,7 @@ def todo_toggle(request, pk):
 def todo_delete(request, pk):
     todo = get_object_or_404(Todo, pk=pk)
     todo.delete()
+    messages.success(request, "Deleted")
     return redirect("todo_list")
 
 
@@ -60,4 +68,5 @@ def todo_delete(request, pk):
 def todo_clear_done(request):
     """Delete every done to-do in one step. If none is done, nothing changes."""
     Todo.objects.filter(done=True).delete()
+    messages.success(request, "Cleared done")
     return redirect("todo_list")

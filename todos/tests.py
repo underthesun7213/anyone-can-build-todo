@@ -62,7 +62,7 @@ class TodoTests(TestCase):
         todo = Todo.objects.create(title="Call home")
         response = self.client.post(reverse("todo_edit", args=[todo.pk]), {"title": ""})
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "This field is required")
+        self.assertFormError(response.context["form"], "title", "Title can't be blank")
         todo.refresh_from_db()
         self.assertEqual(todo.title, "Call home")
 
@@ -84,7 +84,14 @@ class TodoTests(TestCase):
 
     def test_edit_rejects_too_long_title(self):
         todo = Todo.objects.create(title="Call home")
-        self.client.post(reverse("todo_edit", args=[todo.pk]), {"title": "x" * 201})
+        response = self.client.post(
+            reverse("todo_edit", args=[todo.pk]), {"title": "x" * 201}
+        )
+        self.assertFormError(
+            response.context["form"],
+            "title",
+            "Title can't be longer than 200 characters",
+        )
         todo.refresh_from_db()
         self.assertEqual(todo.title, "Call home")
 
@@ -206,6 +213,95 @@ class TodoTests(TestCase):
         response = self.client.get(reverse("todo_delete", args=[todo.pk]))
         self.assertEqual(response.status_code, 405)
         self.assertEqual(Todo.objects.count(), 1)
+
+    # F8: result messages
+
+    def shown_messages(self, response):
+        """The messages the page showed, as (text, kind) pairs."""
+        return [(str(m), m.level_tag) for m in response.context["messages"]]
+
+    def test_add_shows_added_message(self):
+        response = self.client.post(
+            reverse("todo_add"), {"title": "Buy milk"}, follow=True
+        )
+        self.assertContains(response, '<li class="success">Added</li>', html=True)
+
+    def test_message_is_gone_after_reload(self):
+        response = self.client.post(
+            reverse("todo_add"), {"title": "Buy milk"}, follow=True
+        )
+        self.assertEqual(self.shown_messages(response), [("Added", "success")])
+        response = self.client.get(reverse("todo_list"))
+        self.assertEqual(self.shown_messages(response), [])
+
+    def test_edit_shows_saved_message(self):
+        todo = Todo.objects.create(title="Call home")
+        response = self.client.post(
+            reverse("todo_edit", args=[todo.pk]), {"title": "Call mum"}, follow=True
+        )
+        self.assertEqual(self.shown_messages(response), [("Saved", "success")])
+
+    def test_done_shows_marked_done_message(self):
+        todo = Todo.objects.create(title="Buy milk")
+        response = self.client.post(reverse("todo_toggle", args=[todo.pk]), follow=True)
+        self.assertEqual(self.shown_messages(response), [("Marked done", "success")])
+
+    def test_undo_shows_marked_not_done_message(self):
+        todo = Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.post(reverse("todo_toggle", args=[todo.pk]), follow=True)
+        self.assertEqual(
+            self.shown_messages(response), [("Marked not done", "success")]
+        )
+
+    def test_delete_shows_deleted_message(self):
+        todo = Todo.objects.create(title="Buy milk")
+        response = self.client.post(reverse("todo_delete", args=[todo.pk]), follow=True)
+        self.assertEqual(self.shown_messages(response), [("Deleted", "success")])
+
+    def test_clear_done_shows_cleared_done_message(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.post(reverse("todo_clear_done"), follow=True)
+        self.assertEqual(self.shown_messages(response), [("Cleared done", "success")])
+
+    def test_blank_add_shows_reason(self):
+        response = self.client.post(reverse("todo_add"), {"title": ""}, follow=True)
+        self.assertEqual(
+            self.shown_messages(response), [("Title can't be blank", "error")]
+        )
+        self.assertEqual(Todo.objects.count(), 0)
+        # Django writes ' in HTML as &#x27;.
+        self.assertContains(
+            response, '<li class="error">Title can&#x27;t be blank</li>', html=True
+        )
+        # The message block sits between the add form and the list of to-dos.
+        page = response.content.decode()
+        add_form = page.index(reverse("todo_add"))
+        message_block = page.index('class="messages"')
+        todo_list = page.index("<ul>")
+        self.assertLess(add_form, message_block)
+        self.assertLess(message_block, todo_list)
+
+    def test_spaces_only_add_shows_reason(self):
+        response = self.client.post(reverse("todo_add"), {"title": "   "}, follow=True)
+        self.assertEqual(
+            self.shown_messages(response), [("Title can't be blank", "error")]
+        )
+
+    def test_add_without_title_key_shows_reason(self):
+        response = self.client.post(reverse("todo_add"), {}, follow=True)
+        self.assertEqual(
+            self.shown_messages(response), [("Title can't be blank", "error")]
+        )
+        self.assertEqual(Todo.objects.count(), 0)
+
+    def test_too_long_add_shows_reason(self):
+        response = self.client.post(
+            reverse("todo_add"), {"title": "x" * 201}, follow=True
+        )
+        self.assertEqual(
+            self.shown_messages(response),
+            [("Title can't be longer than 200 characters", "error")],
+        )
 
     def test_get_on_clear_done_is_not_allowed(self):
         Todo.objects.create(title="Buy milk", done=True)

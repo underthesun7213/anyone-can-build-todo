@@ -118,6 +118,45 @@ class TodoTests(TestCase):
         self.assertNotContains(response, 'class="done"')
         self.assertContains(response, ">Done<")
 
+    # F6: clear done to-dos
+
+    def test_clear_done_removes_only_done_todos(self):
+        Todo.objects.create(title="A")
+        Todo.objects.create(title="B", done=True)
+        Todo.objects.create(title="C")
+        Todo.objects.create(title="D", done=True)
+        self.client.post(reverse("todo_clear_done"))
+        self.assertEqual([t.title for t in Todo.objects.all()], ["A", "C"])
+
+    def test_clear_done_redirects_to_list(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.post(reverse("todo_clear_done"))
+        self.assertRedirects(response, reverse("todo_list"))
+
+    def test_clear_done_with_nothing_done_changes_nothing(self):
+        Todo.objects.create(title="Buy milk")
+        Todo.objects.create(title="Read chapter 3")
+        response = self.client.post(reverse("todo_clear_done"))
+        self.assertEqual(Todo.objects.count(), 2)
+        self.assertRedirects(response, reverse("todo_list"))
+
+    def test_clear_done_button_shown_when_something_is_done(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        Todo.objects.create(title="Read chapter 3")
+        response = self.client.get(reverse("todo_list"))
+        self.assertContains(response, "Clear done")
+        self.assertContains(response, 'action="/clear-done/"')
+
+    def test_no_clear_done_button_when_nothing_is_done(self):
+        Todo.objects.create(title="Buy milk")
+        response = self.client.get(reverse("todo_list"))
+        self.assertNotContains(response, "Clear done")
+
+    def test_no_clear_done_button_on_empty_list(self):
+        response = self.client.get(reverse("todo_list"))
+        self.assertContains(response, "Nothing to do yet")
+        self.assertNotContains(response, "Clear done")
+
     # Rule: every change sends the browser back to the list
 
     def test_add_redirects_to_list(self):
@@ -164,6 +203,12 @@ class TodoTests(TestCase):
     def test_get_on_delete_is_not_allowed(self):
         todo = Todo.objects.create(title="Buy milk")
         response = self.client.get(reverse("todo_delete", args=[todo.pk]))
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(Todo.objects.count(), 1)
+
+    def test_get_on_clear_done_is_not_allowed(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.get(reverse("todo_clear_done"))
         self.assertEqual(response.status_code, 405)
         self.assertEqual(Todo.objects.count(), 1)
 

@@ -146,6 +146,7 @@ class TodoTests(TestCase):
         response = self.client.get(reverse("todo_list"))
         self.assertContains(response, "Clear done")
         self.assertContains(response, 'action="/clear-done/"')
+        self.assertContains(response, 'method="post" action="/clear-done/"')
 
     def test_no_clear_done_button_when_nothing_is_done(self):
         Todo.objects.create(title="Buy milk")

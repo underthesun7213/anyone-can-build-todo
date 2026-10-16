@@ -105,3 +105,10 @@ Overlap note: F7 (count) will likely also add a context key in `todo_list` and s
 | 3 | `PLAN.md` is missing: F6's heading and the §10 `/clear-done/` row still say 계획 (planned). | Accept | The spec should say what is built. Change both to 구현됨 (implemented). |
 | 4 | The plan only lives in a temporary folder. | Accept | Copy this final plan to `docs/plans/clear-done.md` in the same commit, with `Status: built.` |
 | 5 | No test checks that the not-done to-dos stay in the same order. | Accept | In `test_clear_done_removes_only_done_todos`, use 4 to-dos (A open, B done, C open, D done) and check the remaining titles are exactly `["A", "C"]`. Test count stays 41. |
+
+## Result review
+
+| # | Objection | Decision | Why |
+|---|---|---|---|
+| 1 | `test_clear_done_button_shown_when_something_is_done` does not check that the form uses `POST`. | Accept | A `GET` form would be wrong (it would only get 405). Also assert `method="post" action="/clear-done/"`. Test count stays 41. |
+| 2 | The diff cannot prove the tests failed first. | Reject | The failing output was recorded before the code: 4 `NoReverseMatch` errors and 1 `AssertionError`, ending `FAILED (failures=1, errors=4)`. The temporary `{% if todos %}` swap was also done, and `test_no_clear_done_button_when_nothing_is_done` failed as expected. |

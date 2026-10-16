@@ -91,7 +91,7 @@
 | Done (완료로 바뀜) | `Marked done` | 성공 |
 | Undo (미완료로 바뀜) | `Marked not done` | 성공 |
 | Delete | `Deleted` | 성공 |
-| Clear done (F6) | `Cleared done` | 성공 |
+| Clear done (F6) | `Cleared done` (F6과 함께) | 성공 |
 
 - 오류 알림은 빨간 글자, 성공 알림은 보통 글자색입니다.
 - 수정 화면에서 규칙에 어긋나면 알림을 쓰지 않고, 같은 화면에 같은 두 문장 중 하나를 오류 문구로 보여 줍니다: "Title can't be blank", "Title can't be longer than 200 characters".

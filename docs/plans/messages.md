@@ -38,6 +38,9 @@ Edge cases:
   see your message. (Django stores it in a cookie or the session of that browser.)
 - **The message text never contains the to-do title.** So a title with HTML in it cannot get into
   the message.
+- **In a browser, `""` and 201 characters can't be sent**, because the add input has `required`
+  and `maxlength="200"`. Those two cases are tested with the test client only. To try an error
+  message by hand, add a spaces-only title.
 
 ## How it is built
 
@@ -54,11 +57,14 @@ Edge cases:
 - `todos/templates/todos/todo_list.html`: between the add form and the `<ul>` of to-dos, add:
   `{% if messages %}<ul class="messages">{% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}</ul>{% endif %}`.
   Looping over `messages` is what marks them as shown, so they are gone on the next page.
-- `todos/templates/todos/base.html`: two CSS lines. `.messages li` has no bottom border and a small
-  padding (the plain `li` rule adds a border). `.messages li.error` is red (`#b00`, like `.errorlist`).
-- `PLAN.md`: first, per its own rule. F2 last bullet: a bad add now shows the reason. F8 status
-  becomes 구현됨.
-- `README.md`: `Ran 34 tests` becomes `Ran 43 tests`.
+- `todos/templates/todos/base.html`: `.messages li { border-bottom: none; padding: 0.25rem 0; }`
+  (the plain `li` rule adds a border), and one shared red rule for field errors and error
+  messages: `.errorlist, .messages .error { color: #b00; }`. The color moved out of `.errorlist`.
+- `PLAN.md`: first, per its own rule. F2 last bullet: a bad add now shows the reason. F5 gets a
+  line with the two new error sentences. F8 status becomes 구현됨, with the full message table;
+  the `Cleared done` row is marked `(F6과 함께)`, because F6 is not on this branch.
+- `AGENTS.md`: the `todos/views.py` row says each change adds a one-line message.
+- `README.md`: `Ran 34 tests` becomes `Ran 44 tests`.
 
 No model change, so no migration. No new URL. No new package.
 
@@ -69,31 +75,37 @@ Write them first and run `make test`. Each one fails today, because today no vie
 and no page shows one. Then write the code, and they pass.
 
 To read the messages a page showed, add one small helper method to `TodoTests`:
-`def shown_messages(self, response): return [str(m) for m in response.context["messages"]]`.
+`def shown_messages(self, response): return [(str(m), m.level_tag) for m in response.context["messages"]]`.
+It returns `(text, kind)` pairs, so each test also checks success vs error.
 Each test posts with `follow=True`, so `response` is the list page after the redirect. This is
-better than `assertContains`, because Django writes `can't` in HTML as `can&#x27;t`.
+easier than `assertContains` for the text, because Django writes `can't` in HTML as `can&#x27;t`.
+Two tests also read the HTML, with `assertContains(..., html=True)`.
 
 | Test | What it checks | How it fails today |
 |---|---|---|
-| `test_add_shows_added_message` | Add `Buy milk` → messages are `["Added"]`. | The list is `[]`. |
+| `test_add_shows_added_message` | Add `Buy milk` → messages are `[("Added", "success")]`, and the page has `<li class="success">Added</li>`. | The list is `[]`. |
 | `test_message_is_gone_after_reload` | Add, see `["Added"]`. Then `GET /` again → `[]`. | The first check fails: `[]`, not `["Added"]`. |
 | `test_edit_shows_saved_message` | Edit with `Call mum` → `["Saved"]`. | `[]`. |
 | `test_done_shows_marked_done_message` | Toggle an open to-do → `["Marked done"]`. | `[]`. |
 | `test_undo_shows_marked_not_done_message` | Toggle a done to-do → `["Marked not done"]`. | `[]`. |
 | `test_delete_shows_deleted_message` | Delete → `["Deleted"]`. | `[]`. |
-| `test_blank_add_shows_reason` | Add `""` → `["Title can't be blank"]`, and no to-do saved. | `[]`. |
+| `test_blank_add_shows_reason` | Add `""` → `[("Title can't be blank", "error")]`, no to-do saved, the page has `<li class="error">Title can&#x27;t be blank</li>`, and the message block comes after the add form and before the `<ul>` of to-dos. | `[]`. |
+| `test_add_without_title_key_shows_reason` | Post `{}` → `[("Title can't be blank", "error")]`, and no to-do saved. | `[]`. |
 | `test_spaces_only_add_shows_reason` | Add `"   "` → `["Title can't be blank"]`. | `[]`. |
 | `test_too_long_add_shows_reason` | Add 201 × `x` → `["Title can't be longer than 200 characters"]`. | `[]`. |
 
-That is **9 new tests**.
+That is **10 new tests**. (The other rows check the kind too: `success` or `error`.)
 
-One existing test changes its expectation:
+Two existing tests change their expectation:
 
 - `test_edit_rejects_blank_title_and_keeps_old_one`: replace
   `assertContains(response, "This field is required")` with
   `assertFormError(response.context["form"], "title", "Title can't be blank")`.
   Change it together with the new tests. It fails today (the error is still `This field is required.`)
   and passes after the change to `forms.py`.
+- `test_edit_rejects_too_long_title`: add
+  `assertFormError(response.context["form"], "title", "Title can't be longer than 200 characters")`.
+  It fails today (Django's `Ensure this value has at most 200 characters (it has 201).`).
 
 No other test changes. The tests that check redirects, 404 and 405 do not use `follow=True`, so
 they still pass. `test_done_todo_is_marked_and_offers_undo` checks that `>Done<` is not on the
@@ -102,7 +114,7 @@ page; the message `Marked done` does not match `>Done<`, and that test loads the
 
 ## Done when
 
-`make test` shows `Ran 43 tests` and `OK` (34 today + 9 new). `make check` passes.
+`make test` shows `Ran 44 tests` and `OK` (34 today + 10 new). `make check` passes.
 
 ## Files this touches
 
@@ -112,7 +124,9 @@ page; the message `Marked done` does not match `>Done<`, and that test loads the
 - `todos/templates/todos/base.html`
 - `todos/tests.py`
 - `PLAN.md`
+- `AGENTS.md` (the `todos/views.py` row)
 - `README.md` (the test count)
+- `docs/plans/messages.md` (this plan)
 
 Overlap to watch: F6 (Clear done) and F7 (N left) also change `todo_list.html`, `views.py`,
 `tests.py`, `PLAN.md` and the README test count. F7 also puts a line above the list. If F6 is
@@ -129,3 +143,12 @@ this feature is in.
 | 4 | In a browser, "" and 201 characters can't be sent because of `required` and `maxlength`. | Accept | Add under Edge cases: those two are tested by the test client only; by hand, try a spaces-only title. |
 | 5 | The plan file is not in the repo. | Accept | Commit it as `docs/plans/messages.md` with `Status: built.` |
 | 6 | A second CSS rule copies the error red. | Accept | Use one rule for both, e.g. `.errorlist, .messages .error { color: #b00; }`. |
+
+## Result review
+
+| # | Objection | Decision | Why |
+|---|---|---|---|
+| 1 | No test reads the HTML. | Accept | `test_blank_add_shows_reason` now checks the rendered `<li class="error">` (with `&#x27;`, `html=True`), and that the message block is between the add form and the `<ul>` of to-dos, by comparing positions in the page. |
+| 2 | The body of this file is out of date. | Accept | Counts are now 44 tests and 10 new; the CSS is described as built (shared `.errorlist, .messages .error` rule); the browser edge case from objection 4 is under Edge cases; AGENTS.md and this file are in "Files this touches". |
+| 3 | The `Cleared done` row in PLAN.md F8 is not true on this branch. | Accept | The row is marked `(F6과 함께)`. It is wired up when this branch is brought up to date after F6 merges. |
+| 4 | `test_add_shows_added_message` duplicates the first check of `test_message_is_gone_after_reload`. | Accept | It is kept, and now also checks the HTML `<li class="success">Added</li>` (`html=True`). The count stays 44. |

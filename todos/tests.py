@@ -184,7 +184,7 @@ class TodoTests(TestCase):
         response = self.client.post(
             reverse("todo_add"), {"title": "Buy milk"}, follow=True
         )
-        self.assertEqual(self.shown_messages(response), [("Added", "success")])
+        self.assertContains(response, '<li class="success">Added</li>', html=True)
 
     def test_message_is_gone_after_reload(self):
         response = self.client.post(
@@ -224,6 +224,17 @@ class TodoTests(TestCase):
             self.shown_messages(response), [("Title can't be blank", "error")]
         )
         self.assertEqual(Todo.objects.count(), 0)
+        # Django writes ' in HTML as &#x27;.
+        self.assertContains(
+            response, '<li class="error">Title can&#x27;t be blank</li>', html=True
+        )
+        # The message block sits between the add form and the list of to-dos.
+        page = response.content.decode()
+        add_form = page.index(reverse("todo_add"))
+        message_block = page.index('class="messages"')
+        todo_list = page.index("<ul>")
+        self.assertLess(add_form, message_block)
+        self.assertLess(message_block, todo_list)
 
     def test_spaces_only_add_shows_reason(self):
         response = self.client.post(reverse("todo_add"), {"title": "   "}, follow=True)

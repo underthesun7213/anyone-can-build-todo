@@ -102,7 +102,7 @@ Overlap note: F7 (count) will likely also add a context key in `todo_list` and s
 |---|---|---|---|
 | 1 | The plan says the AGENTS.md `urls.py` row reads "four addresses"; on `main` it already reads "five addresses", and the `views.py` row already mentions Edit. | Accept | The plan must match the real file. Change "five addresses" to "six addresses: the list, add, edit, toggle, delete, clear-done", and add clear-done to "accept `POST` only". Keep the Edit sentence. |
 | 2 | `README.md` is missing from the files list; it says `Ran 34 tests`. | Accept | A beginner following the README would think something broke. Update it to `Ran 41 tests`. |
-| 3 | `PLAN.md` is missing: F6's heading and the §10 `/clear-done/` row still say 계획 (planned). | Accept | The spec should say what is built. Change both to 구현됨 (implemented). |
+| 3 | `PLAN.md` is missing: F6's heading and the §10 `/clear-done/` row still say Planned. | Accept | The spec should say what is built. Change both to Built. |
 | 4 | The plan only lives in a temporary folder. | Accept | Copy this final plan to `docs/plans/clear-done.md` in the same commit, with `Status: built.` |
 | 5 | No test checks that the not-done to-dos stay in the same order. | Accept | In `test_clear_done_removes_only_done_todos`, use 4 to-dos (A open, B done, C open, D done) and check the remaining titles are exactly `["A", "C"]`. Test count stays 41. |
 

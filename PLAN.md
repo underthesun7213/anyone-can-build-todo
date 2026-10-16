@@ -1,224 +1,224 @@
-# 프로덕트 명세서 — To-do 앱
+# Product spec — To-do app
 
-이 문서는 이 앱이 **무엇을 하는지**를 적습니다. 어떻게 만드는지는 적지 않습니다.
-각 기능에는 상태가 있습니다. **구현됨**은 지금 동작하는 것, **계획**은 아직 없는 것입니다.
-기능이 추가되거나 바뀌면 이 문서를 먼저 고치고, 그다음 테스트와 코드를 고칩니다.
+This document says **what the app does**. It does not say how it is built.
+Each feature has a status. **Built** means it works now. **Planned** means it does not exist yet.
+When a feature is added or changed, change this document first, then the tests and the code.
 
-## 1. 개요
+## 1. Overview
 
-- **한 줄 정의**: 할 일을 적고, 끝내고, 지우는 가장 단순한 웹 할 일 목록.
-- **대상 사용자**: 브라우저만 있으면 되는 누구나. 설치나 가입 없이 바로 씁니다.
-- **지금의 범위**: 목록은 하나뿐이고, 사이트를 여는 모든 사람이 같은 목록을 봅니다.
-- **데이터 보관**: 서버의 데이터베이스에 저장됩니다. 브라우저를 닫아도 남습니다.
+- **In one line**: the simplest web to-do list — write a to-do, finish it, delete it.
+- **Who it is for**: anyone with a browser. No install and no sign-up.
+- **Scope today**: there is one list, and everyone who opens the site sees the same list.
+- **Where data lives**: in the server's database. It stays after the browser is closed.
 
-## 2. 용어
+## 2. Terms
 
-| 용어 | 뜻 |
+| Term | Meaning |
 |---|---|
-| 할 일(to-do) | 목록의 한 줄. 제목, 완료 여부, 만든 시각을 가집니다. |
-| 완료(done) | 할 일이 끝났다는 표시. 다시 되돌릴 수 있습니다. |
-| 목록 | 모든 할 일을 만든 순서대로 보여 주는 첫 화면. |
-| 관리자 화면 | `/admin/`. 운영자가 데이터를 직접 보고 고치는 Django 내장 화면. |
+| To-do | One line in the list. It has a title, whether it is done, and when it was made. |
+| Done | A mark that a to-do is finished. It can be undone. |
+| List | The first page. It shows every to-do in the order it was made. |
+| Admin site | `/admin/`. Django's built-in page where an operator sees and changes the data directly. |
 
-## 3. 범위 밖 (만들지 않는 것)
+## 3. Out of scope (what we do not build)
 
-- 공유, 협업, 알림(이메일·푸시), 반복 일정, 첨부 파일, 태그, 하위 할 일.
-- 모바일 앱. 웹 화면이 모바일 폭에서도 보이면 충분합니다.
-- 계정 없이 쓰는 지금 단계에서는 "내 것"이라는 개념이 없습니다. (5절 참고)
+- Sharing, working together, notifications (email or push), repeating to-dos, attachments, tags, sub-tasks.
+- A mobile app. It is enough that the web page works at phone width.
+- While there are no accounts, there is no idea of "mine". (See section 5.)
 
-## 4. 기능 명세 — 할 일 관리
+## 4. Features — managing to-dos
 
-### F1. 목록 보기 — 구현됨
+### F1. See the list — Built
 
-- 주소 `/`를 열면 모든 할 일이 **만든 순서**(오래된 것이 위)로 보입니다.
-- 각 줄에는 제목, Edit 링크, Done/Undo 버튼, Delete 버튼이 있습니다.
-- 완료된 할 일은 제목에 취소선이 그어지고 회색으로 보입니다. 버튼 글자는 Undo입니다.
-- 할 일이 하나도 없으면 "Nothing to do yet. Add something above." 한 줄이 보입니다.
-- 목록 위에는 새 할 일 입력칸과 Add 버튼이 있고, 페이지가 열리면 입력칸에 커서가 있습니다.
+- Opening `/` shows every to-do **in the order it was made** (oldest at the top).
+- Each line has the title, an Edit link, a Done/Undo button and a Delete button.
+- A done to-do has its title struck through and in grey. Its button says Undo.
+- If there are no to-dos, one line says "Nothing to do yet. Add something above."
+- Above the list are an input box for a new to-do and an Add button. When the page opens, the cursor is in the box.
 
-### F2. 할 일 추가 — 구현됨
+### F2. Add a to-do — Built
 
-- 입력칸에 제목을 적고 Add를 누르거나 Enter를 치면 목록 맨 아래에 추가됩니다.
-- 제목 규칙:
-  - 앞뒤 공백은 지워서 저장합니다.
-  - 빈 제목, 공백만 있는 제목은 저장하지 않습니다.
-  - 200자를 넘는 제목은 저장하지 않습니다. 입력칸도 200자까지만 받습니다.
-- 저장 뒤에는 목록 화면으로 돌아갑니다. 입력칸은 비워집니다.
-- 규칙에 어긋나면 아무것도 저장하지 않고 목록으로 돌아갑니다. 목록 위에 빨간 글자로 이유를 한 번 보여 줍니다. (F8)
+- Type a title in the box and press Add or Enter. The to-do is added at the bottom of the list.
+- Title rules:
+  - Spaces at the start and end are removed before saving.
+  - A blank title, or one with only spaces, is not saved.
+  - A title longer than 200 characters is not saved. The box also accepts at most 200 characters.
+- After saving, the browser goes back to the list. The box is empty.
+- If a rule is broken, nothing is saved and the browser goes back to the list. The reason is shown once, in red, above the list. (F8)
 
-### F3. 완료 표시와 되돌리기 — 구현됨
+### F3. Mark done and undo — Built
 
-- Done을 누르면 완료로, Undo를 누르면 미완료로 바뀝니다. 몇 번이든 되돌릴 수 있습니다.
-- 바꾼 뒤에는 목록 화면으로 돌아갑니다.
-- 없는 할 일을 바꾸려 하면 404(없는 페이지) 응답입니다.
+- Done marks a to-do as done; Undo marks it as not done. This can be switched any number of times.
+- After the change, the browser goes back to the list.
+- Changing a to-do that does not exist gives a 404 (page not found) response.
 
-### F4. 삭제 — 구현됨
+### F4. Delete — Built
 
-- Delete를 누르면 그 할 일이 바로 사라집니다. 확인 창은 없습니다. 되살릴 수 없습니다.
-- 삭제 뒤에는 목록 화면으로 돌아갑니다.
-- 없는 할 일을 지우려 하면 404 응답입니다.
+- Delete removes the to-do at once. There is no confirmation. It cannot be brought back.
+- After deleting, the browser goes back to the list.
+- Deleting a to-do that does not exist gives a 404 response.
 
-### F5. 제목 수정 — 구현됨
+### F5. Edit the title — Built
 
-- 목록에서 Edit를 누르면 `/<번호>/edit/` 화면이 열립니다. 입력칸에 현재 제목이 채워져 있고 커서가 있습니다.
-- Save를 누르면 저장하고 목록으로 돌아갑니다. Cancel을 누르면 아무것도 바꾸지 않고 목록으로 돌아갑니다.
-- 제목 규칙은 F2와 같습니다. 규칙에 어긋나면 저장하지 않고, 같은 화면에 빨간 오류 문구를 보여 줍니다. 원래 제목은 그대로 남습니다.
-- 오류 문구는 "Title can't be blank" 또는 "Title can't be longer than 200 characters"입니다. (F8에서 Django 기본 문구를 바꿈)
-- 완료 여부와 만든 시각은 수정으로 바뀌지 않습니다.
-- 없는 번호를 열면 404 응답입니다.
+- Edit on the list opens `/<number>/edit/`. The box holds the current title, and the cursor is in it.
+- Save saves and goes back to the list. Cancel changes nothing and goes back to the list.
+- The title rules are the same as F2. If a rule is broken, nothing is saved and the same page shows a red error. The old title stays.
+- The error says "Title can't be blank" or "Title can't be longer than 200 characters". (F8 replaced Django's default wording.)
+- Editing does not change whether the to-do is done, or when it was made.
+- Opening a number that does not exist gives a 404 response.
 
-### F6. 완료된 항목 한 번에 지우기 — 구현됨
+### F6. Clear all done to-dos at once — Built
 
-- 목록에 "Clear done" 버튼이 있습니다. 완료된 할 일이 없으면 버튼은 보이지 않습니다.
-- 누르면 완료된 할 일만 모두 사라지고, 미완료는 그대로 남습니다.
-- 확인 창은 없습니다. 되살릴 수 없습니다.
+- The list has a "Clear done" button. If no to-do is done, the button is not shown.
+- Pressing it removes every done to-do. Not-done ones stay.
+- There is no confirmation. They cannot be brought back.
 
-### F7. 남은 개수 표시 — 구현됨
+### F7. Show how many are left — Built
 
-- 목록 위에 미완료 개수를 "N left" 형태로 보여 줍니다. 0이면 "All done".
-- 할 일이 하나도 없으면 개수 줄을 보이지 않습니다.
-- 추가·완료·삭제가 일어나면 숫자가 바로 맞게 바뀝니다.
+- Above the list, the number of not-done to-dos is shown as "N left". When it is 0, it says "All done".
+- If there are no to-dos at all, the count line is not shown.
+- After every add, done/undo and delete, the number is right at once.
 
-### F8. 결과 알림 — 구현됨
+### F8. Result messages — Built
 
-- 무언가를 바꾼 뒤 목록 위(입력칸과 목록 사이)에 한 줄 알림이 **한 번만** 보입니다. 새로고침하면 사라집니다.
+- After something changes, a one-line message shows above the list (between the input box and the list) **once**. It is gone after a reload.
 
-| 동작 | 알림 | 종류 |
+| Action | Message | Kind |
 |---|---|---|
-| 추가, 제목이 규칙에 맞음 | `Added` | 성공 |
-| 추가, 빈 제목·공백만 있는 제목·제목 없음 | `Title can't be blank` | 오류 |
-| 추가, 200자를 넘는 제목 | `Title can't be longer than 200 characters` | 오류 |
-| 수정, Save | `Saved` | 성공 |
-| Done (완료로 바뀜) | `Marked done` | 성공 |
-| Undo (미완료로 바뀜) | `Marked not done` | 성공 |
-| Delete | `Deleted` | 성공 |
-| Clear done (F6) | `Cleared done` | 성공 |
+| Add, title follows the rules | `Added` | success |
+| Add, blank title, spaces only, or no title | `Title can't be blank` | error |
+| Add, title longer than 200 characters | `Title can't be longer than 200 characters` | error |
+| Edit, Save | `Saved` | success |
+| Done (becomes done) | `Marked done` | success |
+| Undo (becomes not done) | `Marked not done` | success |
+| Delete | `Deleted` | success |
+| Clear done (F6) | `Cleared done` | success |
 
-- 오류 알림은 빨간 글자, 성공 알림은 보통 글자색입니다.
-- 수정 화면에서 규칙에 어긋나면 알림을 쓰지 않고, 같은 화면에 같은 두 문장 중 하나를 오류 문구로 보여 줍니다: "Title can't be blank", "Title can't be longer than 200 characters".
-- Cancel, 404, 405는 아무것도 바꾸지 않으므로 알림이 없습니다.
-- 알림은 그 브라우저에만 보입니다. 다른 사람에게는 보이지 않습니다.
-- 알림 문구에는 할 일 제목이 들어가지 않습니다.
+- Error messages are red; success messages use the normal text color.
+- On the edit page, a broken rule does not use a message. The same page shows one of the same two sentences as an error: "Title can't be blank", "Title can't be longer than 200 characters".
+- Cancel, 404 and 405 change nothing, so they show no message.
+- A message shows only in that browser. Other people do not see it.
+- A message never contains a to-do's title.
 
-## 5. 기능 명세 — 계정과 나만의 목록 (계획)
+## 5. Features — accounts and your own list (Planned)
 
-이 절이 구현되면 "모든 사람이 같은 목록"이 "사람마다 자기 목록"으로 바뀝니다.
+When this section is built, "everyone sees the same list" becomes "each person has their own list".
 
-### F9. 회원가입 — 계획
+### F9. Sign up — Planned
 
-- `/accounts/signup/`에서 아이디와 비밀번호(두 번)로 가입합니다.
-- 이미 있는 아이디, 너무 짧거나 흔한 비밀번호는 거부하고 이유를 보여 줍니다. (Django 기본 규칙)
-- 가입이 끝나면 바로 로그인된 상태로 목록 화면이 열립니다.
+- At `/accounts/signup/`, sign up with a username and a password (typed twice).
+- A username that already exists, or a password that is too short or too common, is refused, and the reason is shown. (Django's default rules)
+- After signing up, the person is logged in and the list opens.
 
-### F10. 로그인 / 로그아웃 — 계획
+### F10. Log in / log out — Planned
 
-- `/accounts/login/`에서 아이디와 비밀번호로 로그인합니다. 틀리면 이유를 보여 줍니다.
-- 모든 화면 위에 로그인한 아이디와 Log out 버튼이 보입니다. 로그아웃은 버튼(POST)으로만 됩니다.
+- At `/accounts/login/`, log in with a username and password. If they are wrong, the reason is shown.
+- Every page shows the logged-in username and a Log out button at the top. Logging out works only with the button (POST).
 
-### F11. 내 할 일만 보인다 — 계획
+### F11. Only my to-dos are shown — Planned
 
-- 할 일마다 주인이 있습니다. 목록에는 내 것만 보입니다.
-- 남의 할 일은 번호를 알아도 수정·완료·삭제할 수 없습니다. 시도하면 404 응답입니다.
+- Every to-do has an owner. The list shows only mine.
+- Someone else's to-do cannot be edited, marked done or deleted, even if its number is known. Trying gives a 404 response.
 
-### F12. 로그인해야 쓸 수 있다 — 계획
+### F12. You must log in to use it — Planned
 
-- 로그인하지 않고 목록이나 수정 화면을 열면 로그인 화면으로 보냅니다. 로그인하면 원래 가려던 화면으로 돌아옵니다.
+- Opening the list or the edit page without logging in sends the person to the login page. After logging in, they go back to the page they wanted.
 
-## 6. 기능 명세 — 더 쓸모 있게 (계획)
+## 6. Features — more useful (Planned)
 
-### F13. 마감일 — 계획
+### F13. Due date — Planned
 
-- 할 일에 날짜 하나를 붙일 수 있습니다. 없어도 됩니다.
-- 목록에 마감일이 보입니다. 오늘보다 지난 미완료 할 일은 빨간색으로 표시합니다.
-- 추가 화면과 수정 화면 모두에서 넣고 고칠 수 있습니다.
+- A to-do can have one date. It is optional.
+- The list shows the due date. A not-done to-do whose date is before today is shown in red.
+- It can be set and changed on both the add form and the edit page.
 
-### F14. 보기 필터 — 계획
+### F14. View filter — Planned
 
-- 목록 위에 All / Active / Done 세 가지 보기가 있습니다. 기본은 All입니다.
-- 주소로 구분합니다: `/?show=active`, `/?show=done`. 새로고침해도 같은 보기가 유지됩니다.
-- 보기는 읽기만 합니다. 데이터는 바뀌지 않습니다.
+- Above the list are three views: All / Active / Done. The default is All.
+- The address tells them apart: `/?show=active`, `/?show=done`. A reload keeps the same view.
+- A view only reads. It never changes data.
 
-### F15. 우선순위 — 계획
+### F15. Priority — Planned
 
-- 낮음 / 보통 / 높음 셋 중 하나. 기본은 보통입니다.
-- 목록은 높음이 위, 같은 우선순위 안에서는 만든 순서입니다.
-- 높음은 눈에 띄는 표시(색 또는 아이콘)가 붙습니다.
+- One of Low / Normal / High. The default is Normal.
+- The list shows High first; within the same priority, in the order made.
+- High has a mark that stands out (a color or an icon).
 
-## 7. 기능 명세 — 화면 (계획)
+## 7. Features — the page (Planned)
 
-### F16. 새로고침 없는 완료 토글 — 계획
+### F16. Done toggle without a reload — Planned
 
-- Done/Undo를 누르면 페이지 전체가 다시 열리지 않고 그 줄만 바뀝니다.
-- 자바스크립트가 꺼져 있어도 F3처럼 동작해야 합니다.
+- Done/Undo changes only that line, without reloading the whole page.
+- With JavaScript turned off, it must still work like F3.
 
-### F17. 한국어 화면 — 계획
+### F17. Korean interface — Planned
 
-- 버튼과 안내 문구가 한국어로 보입니다. 브라우저 언어가 한국어가 아니면 영어입니다.
+- Buttons and messages are shown in Korean. If the browser's language is not Korean, they are in English.
 
-### F18. 접근성 — 계획
+### F18. Accessibility — Planned
 
-- 모든 기능을 키보드만으로 쓸 수 있습니다. Tab 순서는 화면 순서와 같습니다.
-- 모든 버튼과 입력칸에 화면 읽기 프로그램이 읽을 이름이 있습니다.
+- Every feature can be used with the keyboard alone. The Tab order is the same as the order on the page.
+- Every button and input box has a name that a screen reader can read.
 
-## 8. 운영
+## 8. Running it
 
-### F19. 관리자 화면 — 구현됨
+### F19. Admin site — Built
 
-- `/admin/`에서 운영자 계정으로 로그인하면 모든 할 일을 표로 보고, 고치고, 지울 수 있습니다.
-- 운영자 계정은 `createsuperuser` 명령으로만 만듭니다. 화면에서 가입할 수 없습니다.
+- At `/admin/`, an operator who logs in can see every to-do in a table, change it and delete it.
+- An operator account is made only with the `createsuperuser` command. It cannot be made from a page.
 
-### F20. 인터넷에 올리기 — 계획
+### F20. Put it on the internet — Planned
 
-- HTTPS 주소 하나로 누구나 접속할 수 있습니다. HTTP로 오면 HTTPS로 보냅니다.
-- 비밀 값(비밀 키, 허용 주소, 디버그 여부)은 서버의 환경 변수로만 넣습니다. 코드에는 없습니다.
+- Anyone can reach it at one HTTPS address. A request over HTTP is sent to HTTPS.
+- Secret values (the secret key, the allowed hosts, whether debug is on) go only in the server's environment variables. They are not in the code.
 
-### F21. 데이터가 사라지지 않는 데이터베이스 — 계획
+### F21. A database that does not lose data — Planned
 
-- 서버를 재시작하거나 새로 배포해도 할 일이 남습니다. (SQLite 파일 대신 PostgreSQL)
-- 노트북에서는 그대로 SQLite를 씁니다. 코드는 같고 환경 변수만 다릅니다.
+- To-dos stay after the server restarts or is deployed again. (PostgreSQL instead of the SQLite file.)
+- On a laptop it still uses SQLite. The code is the same; only the environment variables differ.
 
-## 9. 데이터
+## 9. Data
 
-### 할 일(Todo) 한 줄이 가진 것
+### What one to-do (Todo) has
 
-| 항목 | 상태 | 규칙 |
+| Field | Status | Rule |
 |---|---|---|
-| 제목 `title` | 구현됨 | 1~200자. 앞뒤 공백 제거. |
-| 완료 `done` | 구현됨 | 참/거짓. 기본 거짓. |
-| 만든 시각 `created_at` | 구현됨 | 저장할 때 자동으로 기록. 바꿀 수 없음. |
-| 주인 `owner` | 계획 (F11) | 가입한 사용자 한 명. |
-| 마감일 `due` | 계획 (F13) | 날짜. 비워 둘 수 있음. |
-| 우선순위 `priority` | 계획 (F15) | 낮음/보통/높음. 기본 보통. |
+| Title `title` | Built | 1 to 200 characters. Spaces at the start and end are removed. |
+| Done `done` | Built | True or false. Default false. |
+| Made at `created_at` | Built | Recorded automatically when saved. Cannot be changed. |
+| Owner `owner` | Planned (F11) | One signed-up user. |
+| Due date `due` | Planned (F13) | A date. Can be empty. |
+| Priority `priority` | Planned (F15) | Low/Normal/High. Default Normal. |
 
-## 10. 주소(URL) 목록
+## 10. Addresses (URLs)
 
-| 주소 | 방식 | 하는 일 | 상태 |
+| Address | Method | What it does | Status |
 |---|---|---|---|
-| `/` | GET | 목록 보기 (F1) | 구현됨 |
-| `/add/` | POST | 추가 (F2) | 구현됨 |
-| `/<번호>/edit/` | GET, POST | 수정 화면, 저장 (F5) | 구현됨 |
-| `/<번호>/toggle/` | POST | 완료/되돌리기 (F3) | 구현됨 |
-| `/<번호>/delete/` | POST | 삭제 (F4) | 구현됨 |
-| `/clear-done/` | POST | 완료 항목 일괄 삭제 (F6) | 구현됨 |
-| `/?show=active` 등 | GET | 보기 필터 (F14) | 계획 |
-| `/accounts/signup/` | GET, POST | 가입 (F9) | 계획 |
-| `/accounts/login/`, `/accounts/logout/` | GET, POST / POST | 로그인, 로그아웃 (F10) | 계획 |
-| `/admin/` | GET, POST | 관리자 화면 (F19) | 구현됨 |
+| `/` | GET | See the list (F1) | Built |
+| `/add/` | POST | Add (F2) | Built |
+| `/<number>/edit/` | GET, POST | Edit page, save (F5) | Built |
+| `/<number>/toggle/` | POST | Done/undo (F3) | Built |
+| `/<number>/delete/` | POST | Delete (F4) | Built |
+| `/clear-done/` | POST | Delete all done to-dos (F6) | Built |
+| `/?show=active` etc. | GET | View filter (F14) | Planned |
+| `/accounts/signup/` | GET, POST | Sign up (F9) | Planned |
+| `/accounts/login/`, `/accounts/logout/` | GET, POST / POST | Log in, log out (F10) | Planned |
+| `/admin/` | GET, POST | Admin site (F19) | Built |
 
-## 11. 모든 기능에 적용되는 규칙
+## 11. Rules for every feature
 
-- **데이터를 바꾸는 요청은 모두 POST**입니다. 주소를 GET으로 열어서 데이터가 바뀌는 일은 없습니다. 바꾸는 주소를 GET으로 열면 405(허용되지 않는 방식) 응답입니다.
-- **없는 할 일**을 가리키는 모든 요청은 404 응답입니다.
-- **바꾼 뒤에는 목록으로 돌아갑니다.** 새로고침을 눌러도 같은 변경이 두 번 일어나지 않습니다.
-- **화면은 모바일 폭(약 400px)에서도** 가로 스크롤 없이 보입니다.
-- 모든 기능은 **자동 테스트**가 그 동작을 지킵니다. 이 문서의 한 줄이 바뀌면 테스트도 바뀝니다.
+- **Every request that changes data is a POST.** Opening an address with GET never changes data. Opening a changing address with GET gives a 405 (method not allowed) response.
+- Every request about **a to-do that does not exist** gives a 404 response.
+- **After a change, the browser goes back to the list.** Pressing reload does not make the same change twice.
+- **The page works at phone width (about 400px)** with no sideways scrolling.
+- Every feature's behavior is protected by **automated tests**. When a line in this document changes, the tests change too.
 
-## 12. 만드는 순서
+## 12. Build order
 
-번호가 작을수록 먼저 만듭니다. 한 기능이 한 커밋입니다.
+Lower numbers are built first. One feature is one commit.
 
-1. F6 → F7 → F8 (데이터 구조를 바꾸지 않는 것부터)
-2. F9 → F10 → F11 → F12 (계정. F11에서 데이터 구조가 바뀜)
+1. F6 → F7 → F8 (first, the ones that do not change the data structure)
+2. F9 → F10 → F11 → F12 (accounts; F11 changes the data structure)
 3. F13 → F14 → F15
 4. F20 → F21
-5. F16 → F17 → F18 (없어도 동작하는 것)
+5. F16 → F17 → F18 (the ones the app works without)

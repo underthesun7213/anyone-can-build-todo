@@ -61,8 +61,8 @@ Edge cases:
   (the plain `li` rule adds a border), and one shared red rule for field errors and error
   messages: `.errorlist, .messages .error { color: #b00; }`. The color moved out of `.errorlist`.
 - `PLAN.md`: first, per its own rule. F2 last bullet: a bad add now shows the reason. F5 gets a
-  line with the two new error sentences. F8 status becomes 구현됨, with the full message table;
-  the `Cleared done` row is marked `(F6과 함께)`, because F6 is not on this branch.
+  line with the two new error sentences. F8 status becomes Built, with the full message table;
+  the `Cleared done` row is marked `(with F6)`, because F6 is not on this branch.
 - `AGENTS.md`: the `todos/views.py` row says each change adds a one-line message.
 - `README.md`: `Ran 34 tests` becomes `Ran 44 tests`.
 
@@ -150,7 +150,7 @@ this feature is in.
 |---|---|---|---|
 | 1 | No test reads the HTML. | Accept | `test_blank_add_shows_reason` now checks the rendered `<li class="error">` (with `&#x27;`, `html=True`), and that the message block is between the add form and the `<ul>` of to-dos, by comparing positions in the page. |
 | 2 | The body of this file is out of date. | Accept | Counts are now 44 tests and 10 new; the CSS is described as built (shared `.errorlist, .messages .error` rule); the browser edge case from objection 4 is under Edge cases; AGENTS.md and this file are in "Files this touches". |
-| 3 | The `Cleared done` row in PLAN.md F8 is not true on this branch. | Accept | The row is marked `(F6과 함께)`. It is wired up when this branch is brought up to date after F6 merges. |
+| 3 | The `Cleared done` row in PLAN.md F8 is not true on this branch. | Accept | The row is marked `(with F6)`. It is wired up when this branch is brought up to date after F6 merges. |
 | 4 | `test_add_shows_added_message` duplicates the first check of `test_message_is_gone_after_reload`. | Accept | It is kept, and now also checks the HTML `<li class="success">Added</li>` (`html=True`). The count stays 44. |
 
 ## Merge with F6 and F7
@@ -160,4 +160,4 @@ Conflicts were in `AGENTS.md`, `README.md`, `todos/templates/todos/todo_list.htm
 `todos/tests.py`; each kept both sides. On the list page the order is: add form, messages, count,
 list. The clear-done view now adds `Cleared done`, with a new test
 `test_clear_done_shows_cleared_done_message` (it failed first with `[] != [('Cleared done', 'success')]`),
-and the `(F6과 함께)` mark is gone from PLAN.md. Done when: `Ran 58 tests` and `OK`.
+and the `(with F6)` mark is gone from PLAN.md. Done when: `Ran 58 tests` and `OK`.

@@ -125,6 +125,46 @@ class TodoTests(TestCase):
         self.assertNotContains(response, 'class="done"')
         self.assertContains(response, ">Done<")
 
+    # F6: clear done to-dos
+
+    def test_clear_done_removes_only_done_todos(self):
+        Todo.objects.create(title="A")
+        Todo.objects.create(title="B", done=True)
+        Todo.objects.create(title="C")
+        Todo.objects.create(title="D", done=True)
+        self.client.post(reverse("todo_clear_done"))
+        self.assertEqual([t.title for t in Todo.objects.all()], ["A", "C"])
+
+    def test_clear_done_redirects_to_list(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.post(reverse("todo_clear_done"))
+        self.assertRedirects(response, reverse("todo_list"))
+
+    def test_clear_done_with_nothing_done_changes_nothing(self):
+        Todo.objects.create(title="Buy milk")
+        Todo.objects.create(title="Read chapter 3")
+        response = self.client.post(reverse("todo_clear_done"))
+        self.assertEqual(Todo.objects.count(), 2)
+        self.assertRedirects(response, reverse("todo_list"))
+
+    def test_clear_done_button_shown_when_something_is_done(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        Todo.objects.create(title="Read chapter 3")
+        response = self.client.get(reverse("todo_list"))
+        self.assertContains(response, "Clear done")
+        self.assertContains(response, 'action="/clear-done/"')
+        self.assertContains(response, 'method="post" action="/clear-done/"')
+
+    def test_no_clear_done_button_when_nothing_is_done(self):
+        Todo.objects.create(title="Buy milk")
+        response = self.client.get(reverse("todo_list"))
+        self.assertNotContains(response, "Clear done")
+
+    def test_no_clear_done_button_on_empty_list(self):
+        response = self.client.get(reverse("todo_list"))
+        self.assertContains(response, "Nothing to do yet")
+        self.assertNotContains(response, "Clear done")
+
     # Rule: every change sends the browser back to the list
 
     def test_add_redirects_to_list(self):
@@ -218,6 +258,11 @@ class TodoTests(TestCase):
         response = self.client.post(reverse("todo_delete", args=[todo.pk]), follow=True)
         self.assertEqual(self.shown_messages(response), [("Deleted", "success")])
 
+    def test_clear_done_shows_cleared_done_message(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.post(reverse("todo_clear_done"), follow=True)
+        self.assertEqual(self.shown_messages(response), [("Cleared done", "success")])
+
     def test_blank_add_shows_reason(self):
         response = self.client.post(reverse("todo_add"), {"title": ""}, follow=True)
         self.assertEqual(
@@ -257,6 +302,12 @@ class TodoTests(TestCase):
             self.shown_messages(response),
             [("Title can't be longer than 200 characters", "error")],
         )
+
+    def test_get_on_clear_done_is_not_allowed(self):
+        Todo.objects.create(title="Buy milk", done=True)
+        response = self.client.get(reverse("todo_clear_done"))
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(Todo.objects.count(), 1)
 
 
 class AdminTests(TestCase):
@@ -305,3 +356,72 @@ class TodoFormTests(TestCase):
         self.assertEqual(saved.pk, todo.pk)
         self.assertEqual(Todo.objects.count(), 1)
         self.assertEqual(Todo.objects.get().title, "New")
+
+
+class CountTests(TestCase):
+    """The "N left" / "All done" line above the list."""
+
+    def get_list(self):
+        return self.client.get(reverse("todo_list"))
+
+    def test_count_shows_how_many_are_left(self):
+        Todo.objects.create(title="One")
+        Todo.objects.create(title="Two")
+        Todo.objects.create(title="Three", done=True)
+        self.assertContains(self.get_list(), '<p class="count">2 left</p>', html=True)
+
+    def test_count_says_1_left_without_items(self):
+        Todo.objects.create(title="One")
+        response = self.get_list()
+        self.assertContains(response, '<p class="count">1 left</p>', html=True)
+        self.assertNotContains(response, "item left")
+        self.assertNotContains(response, "items left")
+
+    def test_count_says_all_done_when_nothing_is_left(self):
+        Todo.objects.create(title="One", done=True)
+        Todo.objects.create(title="Two", done=True)
+        response = self.get_list()
+        self.assertContains(response, '<p class="count">All done</p>', html=True)
+        self.assertNotContains(response, "0 left")
+
+    def test_count_is_above_the_list(self):
+        Todo.objects.create(title="One")
+        page = self.get_list().content.decode()
+        self.assertIn('class="count"', page)
+        self.assertLess(page.index('class="count"'), page.index("<ul"))
+
+    def test_count_follows_add_toggle_and_delete(self):
+        Todo.objects.create(title="Call mum")
+        response = self.client.post(
+            reverse("todo_add"), {"title": "Buy milk"}, follow=True
+        )
+        self.assertContains(response, '<p class="count">2 left</p>', html=True)
+
+        # A blank title adds nothing, so the count does not change.
+        response = self.client.post(reverse("todo_add"), {"title": "  "}, follow=True)
+        self.assertContains(response, '<p class="count">2 left</p>', html=True)
+
+        milk = Todo.objects.get(title="Buy milk")
+        response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
+        self.assertContains(response, '<p class="count">1 left</p>', html=True)
+
+        # Undo: toggle the same to-do back.
+        response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
+        self.assertContains(response, '<p class="count">2 left</p>', html=True)
+
+        response = self.client.post(reverse("todo_toggle", args=[milk.pk]), follow=True)
+        self.assertContains(response, '<p class="count">1 left</p>', html=True)
+
+        mum = Todo.objects.get(title="Call mum")
+        response = self.client.post(reverse("todo_delete", args=[mum.pk]), follow=True)
+        self.assertContains(response, '<p class="count">All done</p>', html=True)
+
+        response = self.client.post(reverse("todo_delete", args=[milk.pk]), follow=True)
+        self.assertNotContains(response, 'class="count"')
+
+    def test_no_count_when_the_list_is_empty(self):
+        response = self.get_list()
+        self.assertContains(response, "Nothing to do yet")
+        self.assertNotContains(response, 'class="count"')
+        self.assertNotContains(response, "All done")
+        self.assertNotContains(response, " left<")

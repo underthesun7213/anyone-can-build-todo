@@ -8,7 +8,15 @@ from .models import Todo
 
 def todo_list(request):
     todos = Todo.objects.all()
-    return render(request, "todos/todo_list.html", {"todos": todos})
+    return render(
+        request,
+        "todos/todo_list.html",
+        {
+            "todos": todos,
+            "remaining_count": todos.filter(done=False).count(),
+            "has_done": todos.filter(done=True).exists(),
+        },
+    )
 
 
 @require_POST
@@ -53,4 +61,12 @@ def todo_delete(request, pk):
     todo = get_object_or_404(Todo, pk=pk)
     todo.delete()
     messages.success(request, "Deleted")
+    return redirect("todo_list")
+
+
+@require_POST
+def todo_clear_done(request):
+    """Delete every done to-do in one step. If none is done, nothing changes."""
+    Todo.objects.filter(done=True).delete()
+    messages.success(request, "Cleared done")
     return redirect("todo_list")

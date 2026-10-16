@@ -152,3 +152,12 @@ this feature is in.
 | 2 | The body of this file is out of date. | Accept | Counts are now 44 tests and 10 new; the CSS is described as built (shared `.errorlist, .messages .error` rule); the browser edge case from objection 4 is under Edge cases; AGENTS.md and this file are in "Files this touches". |
 | 3 | The `Cleared done` row in PLAN.md F8 is not true on this branch. | Accept | The row is marked `(F6과 함께)`. It is wired up when this branch is brought up to date after F6 merges. |
 | 4 | `test_add_shows_added_message` duplicates the first check of `test_message_is_gone_after_reload`. | Accept | It is kept, and now also checks the HTML `<li class="success">Added</li>` (`html=True`). The count stays 44. |
+
+## Merge with F6 and F7
+
+This branch was brought up to date with F6 (clear done) and F7 (count) before its pull request.
+Conflicts were in `AGENTS.md`, `README.md`, `todos/templates/todos/todo_list.html` and
+`todos/tests.py`; each kept both sides. On the list page the order is: add form, messages, count,
+list. The clear-done view now adds `Cleared done`, with a new test
+`test_clear_done_shows_cleared_done_message` (it failed first with `[] != [('Cleared done', 'success')]`),
+and the `(F6과 함께)` mark is gone from PLAN.md. Done when: `Ran 58 tests` and `OK`.

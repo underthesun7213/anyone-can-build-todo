@@ -67,15 +67,16 @@
 - 완료 여부와 만든 시각은 수정으로 바뀌지 않습니다.
 - 없는 번호를 열면 404 응답입니다.
 
-### F6. 완료된 항목 한 번에 지우기 — 계획
+### F6. 완료된 항목 한 번에 지우기 — 구현됨
 
 - 목록에 "Clear done" 버튼이 있습니다. 완료된 할 일이 없으면 버튼은 보이지 않습니다.
 - 누르면 완료된 할 일만 모두 사라지고, 미완료는 그대로 남습니다.
 - 확인 창은 없습니다. 되살릴 수 없습니다.
 
-### F7. 남은 개수 표시 — 계획
+### F7. 남은 개수 표시 — 구현됨
 
 - 목록 위에 미완료 개수를 "N left" 형태로 보여 줍니다. 0이면 "All done".
+- 할 일이 하나도 없으면 개수 줄을 보이지 않습니다.
 - 추가·완료·삭제가 일어나면 숫자가 바로 맞게 바뀝니다.
 
 ### F8. 결과 알림 — 구현됨
@@ -91,7 +92,7 @@
 | Done (완료로 바뀜) | `Marked done` | 성공 |
 | Undo (미완료로 바뀜) | `Marked not done` | 성공 |
 | Delete | `Deleted` | 성공 |
-| Clear done (F6) | `Cleared done` (F6과 함께) | 성공 |
+| Clear done (F6) | `Cleared done` | 성공 |
 
 - 오류 알림은 빨간 글자, 성공 알림은 보통 글자색입니다.
 - 수정 화면에서 규칙에 어긋나면 알림을 쓰지 않고, 같은 화면에 같은 두 문장 중 하나를 오류 문구로 보여 줍니다: "Title can't be blank", "Title can't be longer than 200 characters".
@@ -198,7 +199,7 @@
 | `/<번호>/edit/` | GET, POST | 수정 화면, 저장 (F5) | 구현됨 |
 | `/<번호>/toggle/` | POST | 완료/되돌리기 (F3) | 구현됨 |
 | `/<번호>/delete/` | POST | 삭제 (F4) | 구현됨 |
-| `/clear-done/` | POST | 완료 항목 일괄 삭제 (F6) | 계획 |
+| `/clear-done/` | POST | 완료 항목 일괄 삭제 (F6) | 구현됨 |
 | `/?show=active` 등 | GET | 보기 필터 (F14) | 계획 |
 | `/accounts/signup/` | GET, POST | 가입 (F9) | 계획 |
 | `/accounts/login/`, `/accounts/logout/` | GET, POST / POST | 로그인, 로그아웃 (F10) | 계획 |
